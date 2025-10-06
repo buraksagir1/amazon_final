@@ -1,0 +1,18 @@
+{
+  "Away": 0,
+  "Born": 1,
+  "Bright": 2,
+  "Colors": 3,
+  "Drawer": 4,
+  "Enemy": 5,
+  "Green": 6,
+  "Learn": 7,
+  "Light-blue": 8,
+  "Man": 9,
+  "Opaque": 10,
+  "Pink": 11,
+  "Red": 12,
+  "Son": 13,
+  "Women": 14,
+  "Yellow": 15
+}

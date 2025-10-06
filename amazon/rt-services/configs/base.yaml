@@ -1,0 +1,16 @@
+in_features: 360
+backbone:
+  name: bigru
+  args:
+    hidden: 256
+    num_layers: 2
+    dropout: 0.1
+head:
+  name: temporal_pool_cls
+  args:
+    num_classes: 16
+training:
+  lr: 0.001
+  weight_decay: 0.01
+  batch_size: 32
+  max_epochs: 50
