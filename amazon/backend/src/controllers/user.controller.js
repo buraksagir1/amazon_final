@@ -146,17 +146,37 @@ export async function getFriendRequests(req, res) {
       FriendRequest.find({
         recipient: userId,
         status: FRIEND_REQUEST_STATUS.PENDING,
-      }).populate("sender", USER_POPULATE_FIELDS),
+      })
+        .populate("sender", USER_POPULATE_FIELDS)
+        .lean(),
 
       FriendRequest.find({
         sender: userId,
         status: FRIEND_REQUEST_STATUS.ACCEPTED,
-      }).populate("recipient", BASIC_USER_FIELDS),
+      })
+        .populate("recipient", BASIC_USER_FIELDS)
+        .lean(),
     ]);
 
+    // Populate edilemeyen (sender veya recipient null olan) kayıtları filtrele
+    const validIncomingRequests = incomingRequests.filter(req => req.sender !== null);
+    const validAcceptedRequests = acceptedRequests.filter(req => req.recipient !== null);
+
+    // Geçersiz kayıtları logla
+    const invalidIncoming = incomingRequests.filter(req => req.sender === null);
+    const invalidAccepted = acceptedRequests.filter(req => req.recipient === null);
+
+    if (invalidIncoming.length > 0) {
+      console.warn(`Found ${invalidIncoming.length} incoming requests with null sender`);
+    }
+
+    if (invalidAccepted.length > 0) {
+      console.warn(`Found ${invalidAccepted.length} accepted requests with null recipient`);
+    }
+
     return res.status(200).json({
-      incomingReqs: incomingRequests,
-      acceptedReqs: acceptedRequests,
+      incomingReqs: validIncomingRequests,
+      acceptedReqs: validAcceptedRequests,
     });
   } catch (error) {
     console.log("Request fetch error:", error.message);
@@ -171,9 +191,19 @@ export async function getOutgoingFriendReqs(req, res) {
     const outgoingRequests = await FriendRequest.find({
       sender: userId,
       status: FRIEND_REQUEST_STATUS.PENDING,
-    }).populate("recipient", USER_POPULATE_FIELDS);
+    })
+      .populate("recipient", USER_POPULATE_FIELDS)
+      .lean();
 
-    return res.status(200).json(outgoingRequests);
+    // Null recipient kontrolü
+    const validRequests = outgoingRequests.filter(req => req.recipient !== null);
+
+    const invalidRequests = outgoingRequests.filter(req => req.recipient === null);
+    if (invalidRequests.length > 0) {
+      console.warn(`Found ${invalidRequests.length} outgoing requests with null recipient`);
+    }
+
+    return res.status(200).json(validRequests);
   } catch (error) {
     console.log("Outgoing requests error:", error.message);
     return res.status(500).json({ message: "Unable to load your sent requests" });
